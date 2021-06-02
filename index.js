@@ -4,6 +4,7 @@ const port = 5000;
 const bodyParser = require('body-parser');
 const cookieParser = require('cookie-parser');
 const { User } = require('./models/User');
+const { auth } = require('./middleware/auth');
 const config = require('./config/key')
 
 app.use(bodyParser.urlencoded({extended: true}));
@@ -20,7 +21,7 @@ mongoose.connect(config.mongoURI , {
 app.get('/', (req, res) => res.send('Hello World!!!!!'))
 
 // 회원가입 기능
-app.post('/register', (req, res) => {
+app.post('/api/users/register', (req, res) => {
     
     // 회원 가입 할 때 필요한 정보들을 client에서 가져오면
     // 그것들을 데이터 베이스에 넣어준다
@@ -35,7 +36,7 @@ app.post('/register', (req, res) => {
 })
 
 // 로그인 기능
-app.post('/login', (req, res) => {
+app.post('/api/users/login', (req, res) => {
 
     // 요청된 이메일을 데이터베이스에서 있는지 찾는다
     // findOne : 몽고db에서 제공하는 메소드
@@ -65,14 +66,24 @@ app.post('/login', (req, res) => {
           .status(200)
           .json({ loginSuccess: true, userId: user._id})
         })
-        
       })
-
     })
-  
-    
+})
 
-    
+// auth => auth.js 인증처리를 하는 곳
+app.get('/api/users/auth', auth, (res, res) => {
+
+    // 여기까지 미들웨어를 성공적으로 통과했다는 얘기는 Authentication이 True라는 말
+    res.status(200).json({
+      _id: req.user._id, // 이렇게 보낼 수 있는 이유는 auth.js에서 req.user로 데이터를 보냈기 때문
+      isAdmin: req.user.role === 0 ? false : true,
+      isAuth: true,
+      email: req.user.email,
+      name: req.user.name,
+      lastname: req.user.lastname,
+      role: req.user.role,
+      image: req.user.image
+    })
 })
 
 app.listen(port, () => console.log(`Example app listening on port ${port}!`))
