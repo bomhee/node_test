@@ -1,6 +1,7 @@
 const mongoose = require('mongoose');
 const bcrypt = require('bcrypt');
 const saltRounds = 10;
+const jwt = require('jsonwebtoken');
 
 const userSchema = mongoose.Schema({
     name: {
@@ -14,7 +15,7 @@ const userSchema = mongoose.Schema({
     },
     password: {
         type: String,
-        maxlength: 50
+        maxlength: 100
     },
     role: {
         type: Number,
@@ -45,13 +46,48 @@ userSchema.pre('save', function( next ){
             // user.password : 사용자가 입력한 순수한 비밀번호 원본
             // hash : 암호화된 비밀번호
             bcrypt.hash(user.password, salt, function(err, hash){
-                if(err) return next(err)
+                if(err) return next(err);
                 user.password = hash // 암호화된 비밀번호로 치환
                 next() // index.js로 돌아감
             })
         })
+    } else {
+        next()
     }
 })
+
+// 비밀번호 유효성 검사
+userSchema.methods.comparePassword = function(plainPassword, cb){
+
+    // plainPassword 1234와 db에 저장된 암호화된 비밀번호 비교
+    // bcrypt를 이용해 사용자가 입력한 plainPassword를 암호화하여 저장된 비밀번호와 비교함
+    bcrypt.compare(plainPassword, this.password, function(err, isMatch){
+        if(err) return cb(err) // 만약 같지 않다면 err를 보내고
+        else cb(null, isMatch)   // 비밀번호가 같다면 그냥 콜백을 index.js로 리턴함 (isMatch == true)
+    })
+}
+
+// 토큰 생성
+userSchema.methods.generateToken = function(cb){
+
+    var user = this;
+
+    // jsonwebtoken을 이용해서 token을 생성하기
+    // _id는 db에 저장된 식별자 _id
+    var token = jwt.sign(user._id.toHexString(), 'secretToken')
+
+    // user._id + 'secretToken' = token
+    // -> 'secretToken' -> user._id
+
+    user.token = token
+    user.save(function(err, user) {
+        if(err) return cb(err)
+        else cb(null, user) // 성공했다면 전달할것 없이(null) user정보만 index.js로 리턴
+    })   
+
+}
+
+
 
 const User = mongoose.model('User', userSchema);
 
