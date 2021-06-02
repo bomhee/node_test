@@ -71,19 +71,33 @@ app.post('/api/users/login', (req, res) => {
 })
 
 // auth => auth.js 인증처리를 하는 곳
-app.get('/api/users/auth', auth, (res, res) => {
+app.get('/api/users/auth', auth, (req, res) => {
+  
+  // 여기까지 미들웨어를 성공적으로 통과했다는 얘기는 Authentication이 True라는 말
+  res.status(200).json({
+    _id: req.user._id, // 이렇게 보낼 수 있는 이유는 auth.js에서 req.user로 데이터를 보냈기 때문
+    isAdmin: req.user.role === 0 ? false : true,
+    isAuth: true,
+    email: req.user.email,
+    name: req.user.name,
+    lastname: req.user.lastname,
+    role: req.user.role,
+    image: req.user.image
+  })
+})
 
-    // 여기까지 미들웨어를 성공적으로 통과했다는 얘기는 Authentication이 True라는 말
-    res.status(200).json({
-      _id: req.user._id, // 이렇게 보낼 수 있는 이유는 auth.js에서 req.user로 데이터를 보냈기 때문
-      isAdmin: req.user.role === 0 ? false : true,
-      isAuth: true,
-      email: req.user.email,
-      name: req.user.name,
-      lastname: req.user.lastname,
-      role: req.user.role,
-      image: req.user.image
-    })
+// 로그아웃 기능 : db에서 유저의 토큰을 지워줌
+app.get('/api/users/logout', auth, (req, res) => {
+    
+    // findOneAndUpdate :  유저를 찾아서 업데이트 시켜주는 메소드
+    User.findOneAndUpdate({ _id: req.user._id }, // 미들웨어에서 로그아웃하려는 사용자의 _id를 가져와서 찾음
+      { token: ""} // 토큰 지워줌
+      , (err, user) => {
+        if(err) return res.json({ success: false, err })
+        else return res.status(200).send({
+          success: true
+        })
+      }) 
 })
 
 app.listen(port, () => console.log(`Example app listening on port ${port}!`))

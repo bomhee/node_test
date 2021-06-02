@@ -6,7 +6,7 @@ let auth = (req, res, next) => {
     // 클라이언트 쿠키에서 토큰을 가져온다
     // index.js에서 const cookieParser = require('cookie-parser'); 해왔기 때문에
     // 따로 import없이도 cookie.x_auth를 가져올 수 있음
-    let token = req.cookie.x_auth;
+    let token = req.cookies.x_auth;
 
     // 가져온 토큰을 복호화(Decode) 한 후 유저를 찾는다
     User.findByToken(token, (err, user) => {
