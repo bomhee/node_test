@@ -1,7 +1,7 @@
-const mongoose = require('mongoose');
-const bcrypt = require('bcrypt');
+const mongoose = require('mongoose'); // mongoDB를 편하게 사용할 수 있게 해주는 라이브러리
+const bcrypt = require('bcrypt'); // 비밀번호 암호화하는 라이브러리
 const saltRounds = 10;
-const jwt = require('jsonwebtoken');
+const jwt = require('jsonwebtoken'); // 토큰 만드는 라이브러리
 
 const userSchema = mongoose.Schema({
     name: {
@@ -35,6 +35,7 @@ userSchema.pre('save', function( next ){
     var user = this;
 
     // 비밀번호가 변경될때에만 암호화가 진행되어야 하기 때문에 조건문 추가
+    // isModified() == 해당 값이 db에 기록된 값과 비교해서 변경된 경우 true를, 그렇지 않은 경우 false를 반환
     if(user.isModified('password')){
 
         // bcrypt 라이브러리로 비밀번호를 암호화 시킨다

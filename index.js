@@ -12,7 +12,7 @@ app.use(bodyParser.json());
 app.use(cookieParser());
 
 const mongoose = require('mongoose');
-// db의 비밀번호 등이 노출될 수 있기 때문에 따로 분리한 다음 gitgnore에 추가함(지금은 귀찮아서 안함)
+// db의 비밀번호 등이 노출될 수 있기 때문에 따로 분리한 다음 gitgnore에 추가함
 mongoose.connect(config.mongoURI , {
     useNewUrlParser: true, useUnifiedTopology: true, useCreateIndex: true, useFindAndModify: false
 }).then(() => console.log('몽고디비 커넥트!'))
